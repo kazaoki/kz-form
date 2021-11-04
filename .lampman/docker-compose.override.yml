@@ -1,0 +1,5 @@
+version: '2.2'
+# services:
+#   lampman:
+#     environment:
+#       LAMPMAN_PHP_XDEBUG_HOST: '${WSL_IP}'
