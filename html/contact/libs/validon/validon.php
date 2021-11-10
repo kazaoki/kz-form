@@ -187,7 +187,7 @@ function __IS_EMAIL($string, $net=false)
 	} else {
 		$error = true;
 	}
-	if($net){
+	if($net && !$error){
 		$arr = explode('@', $string);
 		$host = str_replace(array('[', ']'), '', array_pop($arr));
 		if(!(checkdnsrr($host, 'MX') || checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA'))){
