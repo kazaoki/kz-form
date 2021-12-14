@@ -14,7 +14,7 @@ function send()
 	require __DIR__.'/validon/validon.php';
 	require __DIR__.'/../mail-config.php';
 	require __DIR__.'/jp_send_mail.php';
-	
+
 	if('POST'===$_SERVER['REQUEST_METHOD']){
 
 		// 最終バリデート
@@ -283,7 +283,7 @@ class KZ
 	public static function checked()
 	{
 		$args = func_get_args();
-		return count(1===$args)
+		return 1===@count($args)
 			? ($args[0] ? ' checked' : '')
 			: (
 				is_array($args[0])
