@@ -1,18 +1,23 @@
 <?php
 
+/**
+ * kz-form - カザオキ汎用メールフォーム（ケイジーフォーム）
+ *
+ * Version: 1.1.0
+ * Last update: 2021-12-15
+ *
+ * バリデータライブラリ：Validon [https://github.com/kazaoki/validon]
+ * メール送信ライブラリ：jp_send_mail() [https://kantaro-cgi.com/blog/php/php-jp_send_mail.html]
+ */
+
 // セッション開始
 @session_start();
 
 /**
  * メール送信処理
  */
-function send()
+function send($config)
 {
-	global $config;
-
-	require __DIR__.'/validon/configs/contact.php'; // バリデート設定：contact
-	require __DIR__.'/validon/validon.php';
-	require __DIR__.'/../mail-config.php';
 	require __DIR__.'/jp_send_mail.php';
 
 	if('POST'===$_SERVER['REQUEST_METHOD']){
@@ -24,18 +29,20 @@ function send()
 		// CSRFチェック
 		KZ::csrf_check();
 
-		// ウェイト（大量連続送信防止）
-		sleep(3); // 3秒
+		// メール送信
+		foreach($config['mails'] as $mail) {
 
-		// メール送信（事務局あて）
-		$result = jp_send_mail([
-			'from'    => $config['admin']['from'],
-			'to'      => $config['admin']['to'],
-			'subject' => $config['admin']['subject'],
-			'body'    => file_get_contents($config['admin']['template']),
-			'phpable' => $_POST,
-		]);
-		if(!$result) die ('mail send failed!');
+			// ウェイト（大量連続送信防止）
+			if(isset($config['wait_interval_sec'])) sleep($config['wait_interval_sec']);
+
+			// メールテンプレートロード
+			$mail['body']    = file_get_contents($mail['template']);
+			$mail['phpable'] = true;
+
+			// メール送信処理
+			$result = jp_send_mail($mail);
+			if(!$result) die ('mail send failed!');
+		}
 
 		// 完了画面へ移動
 		header('Location: '.$_SERVER['SCRIPT_NAME']);
@@ -277,8 +284,8 @@ class KZ
 	/**
 	 * 引数が正しければ checked を返す
 	 * -------------------------------------------------------------------------------------------------
-	 * ex. <input type="checkbox" name="sw" value="1"<?= checked($sw) ?>> // 第一引数を評価する
-	 * ex. <input type="checkbox" name="type" value="AAA"<?= checked($types, 'AAA') ?>> // 第二引数と比較
+	 * ex. <input type="checkbox" name="sw" value="1"<?= KZ::checked($sw) ?>> // 第一引数を評価する
+	 * ex. <input type="checkbox" name="type" value="AAA"<?= KZ::checked($types, 'AAA') ?>> // 第二引数と比較
 	 */
 	public static function checked()
 	{
@@ -296,16 +303,30 @@ class KZ
 	/**
 	 * 引数が正しければ selected を返す
 	 * -------------------------------------------------------------------------------------------------
-	 * ex. <option value="hoge"<?= selected($list, 'AAA') ?>>
+	 * ex. <option value="hoge"<?= KZ::selected($list, 'AAA') ?>>
 	 */
 	public static function selected($list, $need)
 	{
-		// if (is_array($list)) return in_array($need, $list) ? ' selected' : '';
-		// return strval($need) == strval($list) ? ' selected' : '';
-
 		return is_array($list)
 			? (in_array($need, $list) ? ' selected' : '')
 			: (strval($need)===strval($list) ? ' selected' : '')
+		;
+	}
+
+	/**
+	 * アクセス元のIPを返す
+	 * -------------------------------------------------------------------------------------------------
+	 * ex. <?= KZ::get_remote_ip() ?>
+	 */
+	public static function get_remote_ip()
+	{
+		return
+			@$_SERVER['HTTP_X_FORWARDED_FOR'] ?:
+			@$_SERVER['HTTP_X_REAL_IP'] ?:
+			@$_SERVER['HTTP_X_SAKURA_FORWARDED_FOR'] ?:
+			@$_SERVER['HTTP_X_CLIENT_IP'] ?:
+			@$_SERVER['HTTP_CF_CONNECTING_IP'] ?:
+			@$_SERVER['REMOTE_ADDR']
 		;
 	}
 }

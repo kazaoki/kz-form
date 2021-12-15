@@ -1,4 +1,11 @@
-<?php require __DIR__.'/libs/kz-form.php'; send() ?>
+<?php require __DIR__.'/libs/kz-form.php' ?>
+<?php
+# Last validate at PHP
+require __DIR__.'/libs/validon/configs/contact.php';
+require __DIR__.'/libs/validon/validon.php';
+# Mail send
+send(require __DIR__.'/mail-config.php');
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
