@@ -1,7 +1,7 @@
 <?php
 
 // バージョン
-define('__JP_SEND_MAIL_VERSION__', '1.2.3');
+define('__JP_SEND_MAIL_VERSION__', '1.3.0');
 
 /**
  * jp_send_mail()
@@ -142,7 +142,7 @@ function jp_send_mail($args)
     // body処理
     if(@$args['phpable']) $args['body'] = $func_phpable($args['body']);
     $keep_mb_regex_encoding = mb_regex_encoding();
-    mb_regex_encoding('UTF-8');
+    mb_regex_encoding(mb_internal_encoding());
     $args['body'] = mb_convert_encoding(
         mb_ereg_replace("\r\n?", "\n", // 本文の改行コードをLFに統一
             false===@$args['wrap']
@@ -233,7 +233,7 @@ function jp_send_mail($args)
         $args['to'],
         $args['subject'],
         $args['body'],
-        implode("\r\n", $headers),
+        implode("\n", $headers),
         implode(' ', $parameters)
     );
 
