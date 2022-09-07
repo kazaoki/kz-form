@@ -79,6 +79,7 @@ $_VALIDON['mail'] = function(&$value, &$params, &$errors, &$changes)
 {
     // 条件
     if(!strlen($value)) return 'メールアドレスを入力してください。';
+    if(!__IS_EMAIL($value, true)) return '正しいメールアドレスを入力してください。';
 };
 
 /**
