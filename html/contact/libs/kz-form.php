@@ -3,8 +3,8 @@
 /**
  * kz-form - カザオキ汎用メールフォーム（ケイジーフォーム）
  *
- * Version: 1.1.0
- * Last update: 2021-12-15
+ * Version: 1.1.1
+ * Last update: 2022-09-07
  *
  * バリデータライブラリ：Validon [https://github.com/kazaoki/validon]
  * メール送信ライブラリ：jp_send_mail() [https://kantaro-cgi.com/blog/php/php-jp_send_mail.html]
@@ -36,8 +36,10 @@ function send($config)
 			if(isset($config['wait_interval_sec'])) sleep($config['wait_interval_sec']);
 
 			// メールテンプレートロード
-			$mail['body']    = file_get_contents($mail['template']);
-			$mail['phpable'] = true;
+			if($mail['template'] && is_file($mail['template'])) {
+				$mail['body'] = file_get_contents($mail['template']);
+			}
+			if(!isset($mail['phpable'])) $mail['phpable'] = true;
 
 			// メール送信処理
 			$result = jp_send_mail($mail);
