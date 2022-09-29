@@ -3,8 +3,8 @@
 /**
  * kz-form - カザオキ汎用メールフォーム（ケイジーフォーム）
  *
- * Version: 1.1.1
- * Last update: 2022-09-07
+ * Version: 1.1.2
+ * Last update: 2022-09-29
  *
  * バリデータライブラリ：Validon [https://github.com/kazaoki/validon]
  * メール送信ライブラリ：jp_send_mail() [https://kantaro-cgi.com/blog/php/php-jp_send_mail.html]
@@ -12,6 +12,9 @@
 
 // セッション開始
 @session_start();
+
+// POSTでアップロードファイルが入ってきたら自動的に /tmp に一時保存
+save_tmps();
 
 /**
  * メール送信処理
@@ -37,7 +40,7 @@ function send($config)
 
 			// メールテンプレートロード
 			if($mail['template'] && is_file($mail['template'])) {
-				$mail['body'] = file_get_contents($mail['template']);
+			$mail['body']    = file_get_contents($mail['template']);
 			}
 			if(!isset($mail['phpable'])) $mail['phpable'] = true;
 
@@ -46,9 +49,44 @@ function send($config)
 			if(!$result) die ('mail send failed!');
 		}
 
+		// 保存していた一時アップロードファイルを削除
+		remove_tmps();
+
 		// 完了画面へ移動
 		header('Location: '.$_SERVER['SCRIPT_NAME']);
 		exit;
+	}
+}
+
+/**
+ * アップロードファイルを /tmp に一時保存
+ */
+function save_tmps($prefix='kz-form')
+{
+	if(@$_FILES && @count($_FILES)) {
+		// 一時保存ディレクトリの作成
+		$temp_dir = sys_get_temp_dir().'/'.$prefix;
+		if($prefix && !file_exists($temp_dir)) @mkdir($temp_dir);
+
+		// 全てのアップロードを処理
+		foreach($_FILES as $input_name => $upload) {
+			if($upload['error']) continue;
+			$file_tmp_path = $temp_dir.'/'.session_id().'-'.$input_name;
+			$_POST[$input_name.'_tmpname'] = basename($file_tmp_path);
+			$_POST[$input_name.'_name'] = $upload['name'];
+			if(move_uploaded_file($upload['tmp_name'], $file_tmp_path));
+		}
+	}
+}
+
+/**
+ * 保存していた一時アップロードファイルを削除
+ */
+function remove_tmps($prefix='kz-form')
+{
+	$temp_dir = sys_get_temp_dir().($prefix ? '/'.$prefix: '').'/'.session_id().'-*';
+	foreach(glob($temp_dir) as $file) {
+		@unlink($file);
 	}
 }
 
