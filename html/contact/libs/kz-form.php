@@ -3,7 +3,7 @@
 /**
  * kz-form - カザオキ汎用メールフォーム（ケイジーフォーム）
  *
- * Version: 1.1.3
+ * Version: 1.1.4
  * Last update: 2022-11-13
  *
  * バリデータライブラリ：Validon [https://github.com/kazaoki/validon]
@@ -19,7 +19,7 @@ save_tmps();
 /**
  * メール送信処理
  */
-function send($config)
+function send($config, $auto_get_jump=true)
 {
 	if(!function_exists('jp_send_mail')) {
 		if(is_file(__DIR__.'/jp_send_mail.php')) {
@@ -57,8 +57,10 @@ function send($config)
 		remove_tmps();
 
 		// 完了画面へ移動
-		header('Location: '.$_SERVER['SCRIPT_NAME']);
-		exit;
+		if($auto_get_jump) {
+			header('Location: '.$_SERVER['SCRIPT_NAME']);
+			exit;
+		}
 	}
 }
 
@@ -153,7 +155,7 @@ class KZ
 	{
 		$success = self::csrf_generate() === $token;
 		if(!$success && $throw) {
-			throw new \RuntimeException('CSRF validation failed.', 400);
+			throw new \RuntimeException('CSRF validation failed. <a href="./">Jump to parent dir.</a>', 400);
 		}
 		return $success;
 	}
@@ -167,8 +169,8 @@ class KZ
 	public static function csrf_check($input_name='csrf_token')
 	{
 		if(!self::csrf_validate(filter_input(INPUT_POST, $input_name))) {
-			header('Content-Type: text/plain; charset=UTF-8', true, 400);
-			die('CSRF validation failed.');
+			header('Content-Type: text/html; charset=UTF-8', true, 400);
+			die('CSRF validation failed. <a href="./">Jump to parent dir.</a>');
 		}
 	}
 
