@@ -3,8 +3,8 @@
 /**
  * kz-form - カザオキ汎用メールフォーム（ケイジーフォーム）
  *
- * Version: 1.1.4
- * Last update: 2022-11-13
+ * Version: 1.1.5
+ * Last update: 2023-02-06
  *
  * バリデータライブラリ：Validon [https://github.com/kazaoki/validon]
  * メール送信ライブラリ：jp_send_mail() [https://kantaro-cgi.com/blog/php/php-jp_send_mail.html]
@@ -31,7 +31,9 @@ function send($config, $auto_get_jump=true)
 
 		// 最終バリデート
 		$result_set = validon($_POST);
-		if(@count(@$result_set['errors'])) die ('mail send failed! (invalid data)');
+		if(@count(@$result_set['errors'])) {
+			throw new Exception('mail send failed! (invalid data)');
+		}
 
 		// CSRFチェック
 		KZ::csrf_check();
@@ -50,7 +52,9 @@ function send($config, $auto_get_jump=true)
 
 			// メール送信処理
 			$result = jp_send_mail($mail);
-			if(!$result) die ('mail send failed!');
+			if(!$result) {
+				throw new Exception(('mail send failed!'));
+			}
 		}
 
 		// 保存していた一時アップロードファイルを削除
@@ -61,7 +65,11 @@ function send($config, $auto_get_jump=true)
 			header('Location: '.$_SERVER['SCRIPT_NAME']);
 			exit;
 		}
+
+		return true;
 	}
+
+	return null;
 }
 
 /**
