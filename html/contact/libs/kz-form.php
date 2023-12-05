@@ -30,7 +30,7 @@ function send($config, $auto_get_jump=true)
 	if('POST'===$_SERVER['REQUEST_METHOD']){
 
 		// 最終バリデート
-		$result_set = validon($_POST);
+		$result_set = validon($_POST, ['targets' => array_keys($_POST)]);
 		if(@count(@$result_set['errors'])) {
 			throw new Exception('mail send failed! (invalid data)');
 		}
